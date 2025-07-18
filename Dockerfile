@@ -1,21 +1,19 @@
-# Use a minimal Python base image with updated Debian (bullseye)
 FROM python:3.10.4-slim-bullseye
 
-# Set working directory
 WORKDIR /app
 
-# Install required system packages
+# Install dependencies, including tzdata and ntpdate for time sync
 RUN apt -qq update && \
     apt -qq install -y --no-install-recommends \
-    git wget pv jq python3-dev ffmpeg mediainfo && \
+    git wget pv jq python3-dev ffmpeg mediainfo tzdata ntpdate && \
+    ln -fs /usr/share/zoneinfo/Etc/UTC /etc/localtime && \
+    dpkg-reconfigure -f noninteractive tzdata && \
+    ntpdate time.google.com && \
     rm -rf /var/lib/apt/lists/*
 
-# Copy all project files to the container
 COPY . .
 
-# Install Python dependencies
 RUN pip3 install --no-cache-dir --upgrade pip && \
     pip3 install --no-cache-dir -r requirements.txt
 
-# Run the bot
 CMD ["python3", "main.py"]
